@@ -6,99 +6,143 @@ const ejs = require("ejs");
 const mongoose = require("mongoose");
 const _ = require("lodash");
 
-const homeStartingContent = "Lacus vel facilisis volutpat est velit egestas dui id ornare. Semper auctor neque vitae tempus quam. Sit amet cursus sit amet dictum sit amet justo. Viverra tellus in hac habitasse. Imperdiet proin fermentum leo vel orci porta. Donec ultrices tincidunt arcu non sodales neque sodales ut. Mattis molestie a iaculis at erat pellentesque adipiscing. Magnis dis parturient montes nascetur ridiculus mus mauris vitae ultricies. Adipiscing elit ut aliquam purus sit amet luctus venenatis lectus. Ultrices vitae auctor eu augue ut lectus arcu bibendum at. Odio euismod lacinia at quis risus sed vulputate odio ut. Cursus mattis molestie a iaculis at erat pellentesque adipiscing.";
-const aboutContent = "Hac habitasse platea dictumst vestibulum rhoncus est pellentesque. Dictumst vestibulum rhoncus est pellentesque elit ullamcorper. Non diam phasellus vestibulum lorem sed. Platea dictumst quisque sagittis purus sit. Egestas sed sed risus pretium quam vulputate dignissim suspendisse. Mauris in aliquam sem fringilla. Semper risus in hendrerit gravida rutrum quisque non tellus orci. Amet massa vitae tortor condimentum lacinia quis vel eros. Enim ut tellus elementum sagittis vitae. Mauris ultrices eros in cursus turpis massa tincidunt dui.";
-const contactContent = "Scelerisque eleifend donec pretium vulputate sapien. Rhoncus urna neque viverra justo nec ultrices. Arcu dui vivamus arcu felis bibendum. Consectetur adipiscing elit duis tristique. Risus viverra adipiscing at in tellus integer feugiat. Sapien nec sagittis aliquam malesuada bibendum arcu vitae. Consequat interdum varius sit amet mattis. Iaculis nunc sed augue lacus. Interdum posuere lorem ipsum dolor sit amet consectetur adipiscing elit. Pulvinar elementum integer enim neque. Ultrices gravida dictum fusce ut placerat orci nulla. Mauris in aliquam sem fringilla ut morbi tincidunt. Tortor posuere ac ut consequat semper viverra nam libero.";
-
-
+const homeStartingContent ="all generated questions";
+const aboutContent ="about page";
+const contactContent = "contact page";
 const app = express();
 
-mongoose.connect("mongodb+srv://nikhilstacks:test123@cluster0.rzizx.mongodb.net/blogDB?retryWrites=true&w=majority");
+mongoose.connect(
+  "mongodb+srv://nikhilstacks:test123@cluster0.rzizx.mongodb.net/blogDB?retryWrites=true&w=majority"
+);
 
 const postSchema = {
+  code: String,
   title: String,
-  body: String
+  body: String,
+  marks: Number
 };
 
 const Post = mongoose.model("Post", postSchema);
 
-app.set('view engine', 'ejs');
+app.set("view engine", "ejs");
 
-app.use(bodyParser.urlencoded({
-  extended: true
-}));
+app.use(
+  bodyParser.urlencoded({
+    extended: true,
+  })
+);
 app.use(express.static("public"));
 
-app.get('/', function(req, res) {
-  Post.find({}, function(err, foundPosts) {
+app.get("/", function (req, res) {
+  Post.find({}, function (err, foundPosts) {
     res.render("home", {
       homeContent: homeStartingContent,
-      homePosts: foundPosts
+      homePosts: foundPosts,
     });
   });
 });
 
-
-app.get('/about', function(req, res) {
-
+app.get("/about", function (req, res) {
   res.render("about", {
-    aboutContent: aboutContent
+    aboutContent: aboutContent,
   });
 });
 
+app.get("/view", function (req, res) {
+  res.render("questionview");
+});
 
-
-app.get('/contact', function(req, res) {
-
+app.get("/contact", function (req, res) {
   res.render("contact", {
-    contactContent: contactContent
+    contactContent: contactContent,
   });
 });
 
-
-app.get('/compose', function(req, res) {
-
-  res.render("compose");
-
+app.get("/generator", function (req, res) {
+  res.render("generator");
 });
 
-app.get('/posts/:postId', function(req, res) {
+app.get("/compose", function (req, res) {
+  res.render("compose");
+});
+
+app.get("/posts/:postId", function (req, res) {
   const requestedPostId = req.params.postId;
 
-  Post.findOne({
-    _id: requestedPostId
-  }, function(err, foundPosts) {
+  Post.findOne(
+    {
+      _id: requestedPostId,
+    },
+    function (err, foundPosts) {
+      res.render("post", {
+        title: foundPosts.title,
 
-    res.render("post", {
-
-      title: foundPosts.title,
-
-      content: foundPosts.body
-
-    });
-
-  });
-
+        content: foundPosts.body,
+      });
+    }
+  );
 });
 
-
-app.post('/compose', function(req, res) {
+app.post("/compose", function (req, res) {
   const post = new Post({
+    code: req.body.composeCode,
     title: req.body.composeTitle,
-    body: req.body.composeBody
+    body: req.body.composeBody,
+    marks: req.body.composeMarks
   });
-  post.save(function(err) {
-
+  post.save(function (err) {
     if (!err) {
-
       res.redirect("/");
+    }
+  });
+});
 
+app.post("/viewQuestions", (req, res) => {
+  // for odering of data according to coloumssss....
+  let order = req.body.order[0];
+  if (order.column == "3") {
+    if(order.dir == "asc") { sort = {marks: 1} }
+    else {
+      sort= {marks: -1}
+    }
+  }
+  ////  count of record
+  var total = 0; // no. of total recrds ...
+  // counting of total recorsds in a collection...  . .
+  Post.countDocuments({}, (err, count) => {
+    if (!err) {
+      total = count;
     }
   });
 
+  //for searching....
+  if (req.body.search.value) {
+    var regex = new RegExp(req.body.search.value, "i");
+    searchStr = { $or: [{ name: regex }, { email: regex }, { city: regex }] };
+  } else {
+    searchStr = {};
+  }
+  var t = 0;
+
+  // data base fetching .....
+  Post.find(
+    searchStr,
+    null,
+    {
+      skip: Number(req.body.start),
+      limit: Number(req.body.length),
+      sort: sort
+    },
+    (err, data) => {
+      if (err) throw err;
+
+      user.countDocuments(searchStr, (err, count) => {
+        res.send({ recordsTotal: total, recordsFiltered: count, data });
+      });
+    }
+  );
 });
 
-
-app.listen(process.env.PORT || 3000, function() {
+app.listen(process.env.PORT || 3000, function () {
   console.log("Server started on port 3000");
 });

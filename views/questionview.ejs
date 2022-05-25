@@ -1,0 +1,50 @@
+<%- include('partials/header'); %>
+
+<table id="example" class="table table-striped table-bordered" style="width: 100%">
+  <thead>
+    <th>S No.</th>
+    <th>Subject</th>
+    <th>Question</th>
+    <th>Mark</th>
+    <th>Acitons</th>
+  </thead>
+  <tbody>
+
+  </tbody>
+</table>
+
+<script type="text/javascript">
+var table;
+$(document).ready(() => {
+  table= $('#example').DataTable({
+               "paging": true,
+               "processing": true,
+               "serverSide": true,
+               'ajax': {
+                'url': '/viewQuestions' ,
+                'type': 'POST',
+                 }
+             ,
+             'columns':
+                  [
+                      { 'data': 'S no.'},
+                      { 'data': 'code'},
+                      { 'data': 'title' },
+                      { 'data': 'body'},
+                      { 'data': 'marks'}
+                  ],
+              "columnDefs": [
+                  {
+                      "targets" : -1,
+                      "render" :function(data ,type ,row, meta)
+                      {
+                        return data;
+                      }
+                  }
+              ]
+ });
+  });
+
+</script>
+
+<%- include('partials/footer'); %>

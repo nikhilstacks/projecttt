@@ -3,12 +3,19 @@
 <h1>Compose</h1>
 
 <form  action="/compose" method="post">
-  <label for="composePost">Title</label>
+  <label for="subject">Subject code</label><br>
+  <select class="subjects" name="composeCode">
+    <option value="eng">english</option>
+    <option value="sci">science</option>
+    <option value="math">maths</option>
+  </select><br>
+  <label for="composePost">QUESTION: </label>
   <input type="text" class="form-control" id="composePost" name="composeTitle" Placeholder="write here" autofocus autocomplete="off">
   <br>
-  <label for="textArea">Post</label>
-  <textarea name="composeBody" class="form-control" id="textArea" rows="6"></textarea>
-
+  <label for="textArea">Options</label>
+  <textarea name="composeBody" class="form-control" id="textArea" rows="4"></textarea>
+  <label for="marks">Award</label>
+  <input id="marks" type="number"class="form-control" name="composeMarks" value=""><br />
   <button type="submit" class="btn btn-primary" name="button">Publish</button>
 </form>
 
